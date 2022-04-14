@@ -33,8 +33,8 @@ git branch -d branch3       #将 branch3 分支删除。
 ## 文件相关操作
 
 ```bash
-git add filename.cpp #将当前 repository 中的 filename.cpp 加入跟踪，当然必须是基于当前目录的完整路径，比如本例 filename.cpp 就和 .git 在同一目录。
-git add *            #跟踪当前 repository 中的所有文件
+git add filename.cpp #将当前 文件夹 中的 filename.cpp 加入跟踪，当然必须是基于当前目录的完整路径，比如本例 filename.cpp 就和 .git 在同一目录。
+git add *            #跟踪当前 文件夹 中的所有文件
 git status           #查看当前 repository 中有改动文件的状态。 一般有改动但为跟踪会标记为红色，有改动跟踪了会是绿色
 git commit			#使用该命令，会提交所有跟踪中的内容，不过会提前弹出一个文件，编辑该文件可以备注这次 commit 的内容。编辑完那个文件直接关掉就会完成 commit。 值得注意的是，该命令也会提交之前创建的本地分支
 git commit -m "啥也没改"  #使用该命令可以跳过备注本次更改的步骤，本次更改的内容备注为： 啥也没改
@@ -102,4 +102,22 @@ HEAD detached from refs/heads/
 ```
 
 这种情况是因为现在指向branch的指针处于**游离状态**，导致这种情况出现的原因是之前切换到了一个历史版本中（可能是你利用`git checkout < commit id>`切换到了某一次指定的提交），若此时你进行了`commit`操作，那么就会导致一个**匿名的分支**被创建，当你要进行`checkout`操作时，会提醒你，将匿名分支进行保存，而保存的方法就是给这个匿名分支新建一个分支。
+
+### 关于token
+
+使用以下命令可以避免每次提交都输入token
+
+
+
+```bash
+#也可以 把token直接添加远程仓库链接中，这样就可以避免同一个仓库每次提交代码都要输入token了：
+git remote set-url origin https://<your_token>@github.com/<USERNAME>/<REPO>.git
+#your_token：换成你自己得到的token
+#USERNAME：是你自己github的用户名
+#REPO：是你的仓库名称
+例如
+git remote set-url origin https://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@github.com/shliang0603/Yolov4_DeepSocial.git/
+```
+
+
 
