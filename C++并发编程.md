@@ -114,6 +114,8 @@ void hello(){
 
 ### 单例设计模式
 
+只能实体化一个该类
+
 ```cpp
 class MyCAS{
 private:
@@ -158,7 +160,7 @@ std::condition_cariable<std::mutex> my_cond;
 
 **wait()**方法，用来等一个东西
 
-如果第二个参数lambda表达式返回值是true，那么wait()直接返回；
+如果第二个参数lambda表达式返回值是	true，那么wait()直接返回；
 
 xxxxxxxxxx5 1void func(void *copy_p)2{3    // 看上去怪怪的，因为常规用法是copy_p-> = 。。。4    *copy_p = new SomeType();     5}c
 
@@ -234,7 +236,7 @@ int main(){
 
 我们可以通过额外向async()传递第一个参数，该参数的类型是std::launch(枚举类型),来达到一些特殊的目的。
 
-1. std::launch::deferred 表示线程入口函数调用被延迟到，std::future的wait() 或者 get() 函数调用时才执行，并且不会创建新线程，之后再当前线程像调用函数一样调用线程。如果不调用，甚至不会创建线程。
+1. std::launch::deferred 
 
    ```cpp
    class A{

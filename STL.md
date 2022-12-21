@@ -1,5 +1,5 @@
 # STL 笔记
-在C++primer中看到的 STL 内容，看到一点记录一点。’
+
 
 ## 一些技巧
 
@@ -11,9 +11,174 @@ vector<int> (v).swap(v);
 
 这个操作实际上是使用了一个匿名对象的方法，假设之前的v占用空间为10000，但我们实际只用了5000，就可以用这个操作来进行空间收缩，因为匿名对象的内存在调用后会被回收，我们用v来初始化这个匿名对象，初始化后占用空间为5000，然后再调用swap方法来进行交换，10000的空间会再调用后呗删除，而v现在的空间刚好只有5000了。
 
+## deque和vector的区别
+
+deque容器相对于vector，支持双端的操作，可以分别调用`deque.push_back(elem);`、`deque.push_front(elem);`、`deque.pop_back(elem);`和`deque.pop_front(elem);`来进行头部和尾部的添加和删除操作。
+
+它的`insert()`方法相对于vector来说多了一个可以插入区间的方法，`deque.inster(deque.begin(),d2.begin(),d2.end())`,这行代码的医生就是在deque的头部插入d2的全部数据。
+
+`erase()`方法也具有区间删除的能力。删除后会返回下一个数据的位置。
 
 
 
+## stack
+
+构造函数：
+
+* `stack<T> stk;`                                 //stack采用模板类实现， stack对象的默认构造形式
+* `stack(const stack &stk);`            //拷贝构造函数
+
+赋值操作：
+
+* `stack& operator=(const stack &stk);`           //重载等号操作符
+
+数据存取：
+
+* `push(elem);`      //向栈顶添加元素
+* `pop();`                //从栈顶移除第一个元素
+* `top(); `                //返回栈顶元素
+
+大小操作：
+
+* `empty();`            //判断堆栈是否为空
+* `size(); `              //返回栈的大小
+
+
+
+## queue
+
+构造函数：
+
+- `queue<T> que;`                                 //queue采用模板类实现，queue对象的默认构造形式
+- `queue(const queue &que);`            //拷贝构造函数
+
+赋值操作：
+
+- `queue& operator=(const queue &que);`           //重载等号操作符
+
+数据存取：
+
+- `push(elem);`                             //往队尾添加元素
+- `pop();`                                      //从队头移除第一个元素
+- `back();`                                    //返回最后一个元素
+- `front(); `                                  //返回第一个元素
+
+大小操作：
+
+- `empty();`            //判断堆栈是否为空
+- `size(); `              //返回栈的大小
+
+
+
+## pair 对组
+
+对组不需要包含头文件
+
+pair容器的创建
+
+* `pair<string,int>p("tom",20);`
+* `pair<string,int>p2=make_pair("jerry",30);`
+
+访问pair容器的值
+
+访问第一个(键key)`pair.first`
+
+访问第二个(值val)`pair.second`
+
+## set 容器
+
+构造：
+
+* `set<T> st;`                        //默认构造函数：
+* `set(const set &st);`       //拷贝构造函数
+
+赋值：
+
+* `set& operator=(const set &st);`    //重载等号操作符 
+
+set 容器的赋值操作是将另一个set复制给当前set。
+
+
+
+set容器默认从小到大排序，如果想要更改排序规则，可以在创建容器时加入一个仿函数类。同时我们也可以用这种方式排序自定义的数据类型
+
+```cpp
+class MyCompare 
+{
+public:
+	bool operator()(int v1, int v2) {
+		return v1 > v2;
+	}
+};
+int main(){
+    set<int,MyCompare> s2;//这样做之后插入的数据就会按照仿函数的内容进行排序。
+}
+```
+
+自定义数据类型排序
+
+```cpp
+class Person
+{
+public:
+	Person(string name, int age)
+	{
+		this->m_Name = name;
+		this->m_Age = age;
+	}
+
+	string m_Name;
+	int m_Age;
+
+};
+class comparePerson
+{
+public:
+	bool operator()(const Person& p1, const Person &p2)
+	{
+		//按照年龄进行排序  降序
+		return p1.m_Age > p2.m_Age;
+	}
+};
+```
+
+
+
+## map
+
+map的使用与set的使用非常类似，区别在于map中的元素都是pair类型，是key和value一一对应的格式，
+
+* 它的排序是按照键值进行排序的
+
+**构造：**
+
+* `map<T1, T2> mp;`                     //map默认构造函数: 
+* `map(const map &mp);`             //拷贝构造函数
+
+
+
+**赋值：**
+
+* `map& operator=(const map &mp);`    //重载等号操作符
+
+**大小**
+
+- `size();`          //返回容器中元素的数目
+- `empty();`        //判断容器是否为空
+- `swap(st);`      //交换两个集合容器
+
+**插入和删除：**
+
+- `insert(elem);`           //在容器中插入元素。
+- `clear();`                    //清除所有元素
+- `erase(pos);`              //删除pos迭代器所指的元素，返回下一个元素的迭代器。
+- `erase(beg, end);`    //删除区间[beg,end)的所有元素 ，返回下一个元素的迭代器。
+- `erase(key);`            //删除容器中值为key的元素。
+
+**查找和统计：**
+
+- `find(key);`                  //查找key是否存在,若存在，返回该键的元素的迭代器；若不存在，返回set.end();
+- `count(key);`                //统计key的元素个数
 
 
 
