@@ -1,3 +1,5 @@
+
+
 # Makefile和g++学习笔记
 
 ## g++部分
@@ -154,9 +156,268 @@ cp libxx.so /lib/x85_64-linux-gnu/   #将动态链接库复制到上面命令输
 
 大功告成，程序可以顺利运行了。
 
+### 编译时进行宏定义（一般用于条件编译）
+
+`-D`：我们可以使用-D选项来在编译时进行一个宏定义，假设我们在代码中定义了一个条件编译当定义DEBUG时就可以启用，我们就可以在编译时加上如下代码
+
+```shell
+gcc xxxxx -D 
+```
+
+
+
+
+
 
 
 ## Makefile部分
+
+Makefile的命令结构如下。
+
+```makefile
+目标:依赖
+	@达成目标所需要运行的命令   #@可以让这条命令不显示命令本身，只输出结果，也可以不加。
+```
+
+
+
+Makefile可以利用文件的时间来判断文件是否更新。判断依赖和目标文件的最后修改时间，当目标文件比依赖文件旧时，则会重新编译目标文件。
+
+### Makefile的通配符
+
+
+
+* `%.o`:表示一个xx.o文件
+* `$@`:表示目标文件
+* `$<`:表示第一个依赖文件
+* `$^`:表示所有依赖
+
+
+
+### Makefile的运行
+
+make时后面可以加一个空格，再加上目标的名称，则生成该目标，若没有目标则默认生成第一个目标
+
+
+
+### Makefile的假想目标
+
+通常情况下，我们可以用这个命令来清楚之前make的结构，中间文件和可执行文件等。
+
+```makefile
+#上面还有其他内容被省略
+clean:
+	rm *.o test
+```
+
+但是当文件夹中有，名为clean的文件时，根据makefile的规则，clean文件已经存在并且它的依赖都比它旧（实际上是没有依赖）所有不会运行下面的代码，也就不会达到我们想要的效果，这种时候我们就需要用到假想目标这种语法了。
+
+```makefile
+#上面还有其他内容被省略
+clean:
+	rm *.o test
+.PHONY:clean
+```
+
+这样做旧依旧能够运行clean了。
+
+
+
+### Makefile的变量
+
+Makefile的变量分为两种
+
+* `:=`:即时变量，该变量的值即刻确定，在**定义时**就被确定了
+* `=`:延时变量，该变量的值，在**使用时**才确定
+* `?=`:延时变量，如果是**第一次定义**才起效，如果前面被定义过了就忽略这句
+* `+=`:附加，它是即时变量还是延时变量取决于 前面的定义
+
+```makefile
+A:=$(C)
+B=$(C)
+C=abc#1
+
+all:
+	@echo A = $(A)
+	@echo B = $(B)
+C=123#2
+```
+
+会输出：
+
+```bash
+#1
+A =
+B = abc
+#2
+A =
+B = 123
+```
+
+
+
+```makefile
+A:=$(C)
+B=$(C)
+C=abc
+
+all:
+	@echo A = $(A)
+	@echo B = $(B)
+C=123#1
+C+=123#2
+```
+
+会输出：
+
+```bash
+#1
+A =
+B = 123
+#2
+A =
+B = abc 123
+```
+
+
+
+### Makefile函数
+
+#### 函数遍历
+
+`$(foreach val,list,text)`:对于list（通常用空格隔开）里的每一个变量执行text操作
+
+```makefile
+A=a b c
+B=$(foreach f,$(A),$(f).o)#用f代表A中的各个变量，执行第三个参数的操作。
+
+all:
+	@echo B=$(B)
+#输出
+B=a.o b.o c.o
+```
+
+#### filter函数过滤
+
+`$(filter pattern...,text)`:在text里面取出符合pattern格式的值
+
+`$(filter-out pattern...,text)`:在text里面取出不符合pattern格式的值
+
+```makefile
+C= a b c d/
+D=$(filter %/,$(C))
+E=$(filter-out %/,$(C))
+
+all:
+	@echo D=$(D)
+	@echo E=$(E)
+#输出
+D=d/
+E=a b c
+```
+
+#### wildcard函数查找
+
+`$(wildcard pattern)`:pattern定义了文件名的格式，wildcard取出其中存在的文件
+
+```makefile
+files = $(wildcard *.c)
+files2=a.c b.c c.c d.c e.c
+file3 = $(wildcard $(files2))
+all:
+	@echo files=$(files)
+	@echo files3=$(files3)
+#输出
+files=a.c b.c c.c
+```
+
+也可以用这个函数确定哪些文件真实存在。
+
+```makefile
+files2=a.c b.c c.c d.c e.c#其中 d.c e.c 并不存在于文件中
+file3 = $(wildcard $(files2))
+all:
+	@echo files3=$(files3)
+#输出
+files3=a.c b.c c.c
+```
+
+#### patsubst函数替换
+
+`$(patsubst pattern,replacement,$(var))`:从var中将符合patern格式的内容，替换为replacement。
+
+```makefile
+files2=a.c b.c c.c d.c e.c abc
+dep_files=$(patsubst %.c,%.d,$(file2))
+all:
+	@echo dep_files=$(dep_files)
+#输出
+files3=a.d b.d c.d d.d e.d abc
+```
+
+### 头文件依赖
+
+在下述情况中，当我们修改了c.h中的内容，不加入新的一行，则c.h中的更改不会被编译，因为make认为对于c.o(%.o)这个目标，它的依赖c.c(%.c)，并没有更改，所以我们就需要手动加入新的一行来解决这个问题，当要make时，我们运行到新加入的一行，发现c.h发生了修改，我们要生成新的目标c.o，如何生成呢，在下面的`%.o:%.c`下面告诉了我们如何生成。
+
+```makefile
+test:a.o b.o c.o
+	gcc -o test $^
+c.o:c.c c.h#加入后可以解决
+
+%.o:%.c
+	gcc -c -o $@ $<
+clean:
+	rm *.o test
+.PHONY:clean
+```
+
+但我们不能对每一个文件都这样操作，这样使用通配符将失去意义，我们的工作量也会回到最初的起点。这个时候，我们就可以用gcc的一个工具，它可以查看依赖，并生成文件。
+
+```makefile
+gcc -M c.c #打印出c.c的依赖
+
+gcc -M -MF c.d c.c  #把依赖文件写入文件c.d
+
+gcc -c -o c.o c.c -MD -MF c.d #编译c.o，把依赖写入文件c.d
+```
+
+需要注意的是生成的.d文件是隐藏文件。也就是说它的前面还有一个点。`.xx.o.d`
+
+具体做法如下
+
+```makefile
+objs=a.o b.o c.o
+dep_files := $(patsubst %,.%.d,$(objs)) #将objs中的所有文件替换成.%.d的形式 使用:= 是因为下一步中如果不这样会出现递归调用
+dep_files := $(wildcard $(dep_files)) #将dep_files中确实存在的文件取出，赋给自己，这里用:= 即时变量是因为在这个语句中用到了它本身，但是如果使用=延时变量的话，会在用到dep_files时才生成dep_files，但是我用到的时候还没有，所有是错误的。
+
+test: $(objs)
+	gcc -o test $^
+ifneq ($(dep_files),) #如果这个变量不等于空
+include $(dep_files)
+endif
+
+%.o :%.c
+	gcc -c -o $@ $< -MD -MF .$@.d
+
+clean:
+	rm *.o test
+distclean:
+	rm $(dep_files)
+
+.PHONY:clean
+```
+
+### CFLAGS
+
+`CFLAGS=-Werror` :会把所有警告当成错误
+
+`CFLAGS=-Iinclude`:将include目录添加到GCC搜索头文件默认的路径，
+
+
+
+
+
+
 
 研究了一天了，本来想把 链接库文件也加进来，但是失败了。目前算是够用了，先这样吧。
 
@@ -186,7 +447,7 @@ CFLAGS = -g -Wall -I include            #-I include 是针对g++的，是头文�
 
 
 $(prom):$(obj)	
-	$(cc) -o $@  $^ 				# $@ 是所有的目标文件，卸载这里的目的也就是让它输出为 $(prom) 即可执行文件的名字
+	$(cc) -o $@  $^ 				# $@ 是所有的目标文件，写在这里的目的也就是让它输出为 $(prom) 即可执行文件的名字
     							   # $^ 是所有的依赖文件，也就是$(obj)
 
 %.o:%.cpp							# %.o 就是要用到的 某.o 文件，后面就是 某.cpp 文件，注意 再一个目标中 % 所指代的
